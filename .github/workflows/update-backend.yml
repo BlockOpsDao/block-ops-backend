@@ -10,7 +10,21 @@ jobs:
   run_tests:
     runs-on: ubuntu-20.04
     name: Executing Brownie Tests
+    
     steps:
+      - name: Cache Compiler Installations
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.solcx
+            ~/.vvm
+          key: compiler-cache
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+
+      - name: Install Ganache
+        run: npm install -g ganache-cli@6.10.2
       - uses: actions/checkout@v3
       - name: Set up Python
         uses: actions/setup-python@v3

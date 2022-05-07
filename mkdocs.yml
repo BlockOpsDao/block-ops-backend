@@ -1,0 +1,8 @@
+site_name: Block-Ops Docs
+site_url: https://block-ops.xyz/
+theme:
+  name: readthedocs
+  hljs_languages:
+    - python
+  analytics:
+    gtag: G-DVWFQ1738R

@@ -1,0 +1,21 @@
+name: Update block-ops backend
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  run_tests:
+    runs-on: ubuntu-20.04
+    name: Executing Brownie Tests
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.9.10'
+      - run: echo "PUBLIC_KEY=${{ secrets.PUBLIC_KEY }}" >> .env
+      - run: pip install -r requirements.txt
+      - run: brownie test

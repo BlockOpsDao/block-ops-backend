@@ -1,0 +1,29 @@
+dependencies:
+  - OpenZeppelin/openzeppelin-contracts@4.6.0
+  - OpenZeppelin/openzeppelin-contracts-upgradeable@4.6.0
+compiler:
+  solc:
+    remappings:
+      - '@openzeppelin=OpenZeppelin/openzeppelin-contracts@4.6.0'
+      - '@openzeppelin-upgradeable=OpenZeppelin/openzeppelin-contracts-upgradeable@4.6.0'
+
+dotenv: .env
+networks:
+  default: development
+  development:
+    keyhash: '0x2ed0feb3e7fd2022120aa84fab1945545a9f2ffc9076fd6156fa96eaff4c1311'
+    fee: 100000000000000000
+  rinkeby:
+    vrf_coordinator: '0xb3dCcb4Cf7a26f6cf6B120Cf5A73875B7BBc655B'
+    eth_usd_price_feed: '0x8A753747A1Fa494EC906cE90E9f37563A8AF630e'
+    fee: 100000000000000000
+    verify: True
+  mainnet-fork:
+    weth_token: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
+    eth_usd_price_feed: '0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419'
+    verify: False
+  kovan:
+    weth_token: '0xd0A1E359811322d97991E03f863a0C30C2cF029C'
+    lending_pool_addresses_provider: '0x88757f2f99175387ab4c6a4b3067c77a695b0349'
+wallets:
+  from_key: ${PRIVATE_KEY}

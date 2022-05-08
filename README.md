@@ -2,6 +2,8 @@
 
 Machine Learning Operations (MLOps) on the blockchain. 
 
+[![codecov](https://codecov.io/gh/BlockOpsDao/block-ops-backend/branch/main/graph/badge.svg?token=P9SUBDKN5J)](https://codecov.io/gh/BlockOpsDao/block-ops-backend)
+
 ## Experimentation Tracking
 
 Experimentation tracking is a crucial piece of the machine learning lifecycle. It is the process by which metrics & parameters are stored for analysis and traceability. For the data scientist, experimentation tracking tools are fantastic ways of storing what model architectures and parameters have been tried, what worked, and what didn't when trying to solve a problem with machine learning. For organizations, they serve as a lineage tracker providing confidence in how a model was created. Whether you are a hands-on-keyboard developer or a project manager overseeing an ML-integrated product, reproducibility is a highly sought-after feature in any MLOps pipeline. Using an experimentation tracking tool delivers said reproducibility.

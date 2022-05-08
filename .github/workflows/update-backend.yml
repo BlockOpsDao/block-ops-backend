@@ -32,14 +32,14 @@ jobs:
           python-version: '3.9.10'
       - run: echo "PUBLIC_KEY=${{ secrets.PUBLIC_KEY }}" >> .env
       - run: pip install -r requirements.txt
-      - run: brownie test --coverage
-
+      - run: brownie test --coverage --gas
+      - run: pytest --cov=./ --cov-report=xml --gas
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           env_vars: OS,PYTHON
           fail_ci_if_error: true
-          directory: ./reports/
+          directory: ./
           flags: unittests
           verbose: true

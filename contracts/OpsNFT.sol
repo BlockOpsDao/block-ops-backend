@@ -21,6 +21,7 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
 
     // maps tokenId to amount of ETH stored in NFT
     mapping(uint256 => uint256) public amountOfEthInNFT;
+    mapping(uint256 => address) public nftCreators;
 
     event NFTMinted(address _to, string _tokenMetadata, uint256 _escrowValue, uint256 _tokenId);
     event Redeemed(address _redeemer, uint256 _tokenId, uint256 _amount);
@@ -52,6 +53,7 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
         uint256 royaltyAmount = _payOutRoyalty(tokenId, msg.value);
         uint256 amountToEscrow = msg.value - royaltyAmount;
         amountOfEthInNFT[tokenId] = amountToEscrow;
+        nftCreators[tokenId] = msg.sender;
         initialized = true;
         emit NFTMinted(msg.sender, tokenMetadataURI, amountToEscrow, tokenId);
 
@@ -65,12 +67,13 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
         return royaltyAmount;
     }
 
-    function tokenDetails(uint256 _tokenId) public view returns (address, string memory, uint256, bool) {
+    function tokenDetails(uint256 _tokenId) public view returns (address, string memory, uint256, address) {
         require(_exists(_tokenId), "NFT tokenId does not exist.");
         string memory tokenMetadata = tokenURI(_tokenId);
         uint256 amount = amountOfEthInNFT[_tokenId];
         address nftOwner = ownerOf(_tokenId);
-        return (nftOwner, tokenMetadata, amount, initialized);
+        address nftCreator = nftCreators[_tokenId];
+        return (nftOwner, tokenMetadata, amount, nftCreator);
     }
 
     function contractAddress() public view returns (address) {
@@ -78,7 +81,7 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
     }
 
     function redeemEthFromNFT(uint256 _tokenId) external isInitialized {
-        (address nftOwner, string memory tokenMetadata, uint256 amount, bool initialized) = tokenDetails(_tokenId);
+        (address nftOwner, string memory tokenMetadata, uint256 amount, address nftCreator) = tokenDetails(_tokenId);
         require(nftOwner == msg.sender, "Only the owner of the NFT can redeem the rewards.");
 
         uint256 royaltyAmount = _payOutRoyalty(_tokenId, amount);
@@ -88,6 +91,14 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
         require(success, "Transfer Failed.");
         emit Redeemed(msg.sender, _tokenId, amount);
     } 
+
+    function getAmountStoredInNFT(uint256 _tokenId) public view returns (uint256) {
+        return amountOfEthInNFT[_tokenId];
+    }
+
+    function getNFTCreator(uint256 _tokenId) public view returns (address) {
+        return nftCreators[_tokenId];
+    }
 
     // The following functions are overrides required by Solidity.
 

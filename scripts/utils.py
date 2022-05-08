@@ -1,4 +1,5 @@
 import os
+
 from brownie import Contract, accounts, config, network, web3
 from web3 import Web3
 
@@ -61,23 +62,23 @@ class Utils:
             return accounts.load(id)
         return accounts.add(config["wallets"]["from_key"])
 
-    def get_royalty_account(self, royalty_account_env_var: str = 'PUBLIC_KEY'):
+    def get_royalty_account(self, royalty_account_env_var: str = "PUBLIC_KEY"):
         """
         Given the name of an environment variable, retrieves
         the value of that variable and returns it.
-        
+
         Arguments:
             royalty_account_env_var (str): The environment variable that holds
-                                           the value of the royalty accounts 
+                                           the value of the royalty accounts
                                            public key.
 
         Returns:
             str: The public key of the royalty account.
         """
 
-        royalty_account = os.getenv(royalty_account_env_var)
+        royalty_address = os.getenv(royalty_account_env_var)
+        royalty_account = accounts.at(royalty_address, force=True)
         return royalty_account
-
 
     def get_contract(self, contract_name: str):
         """If you want to use this function, go to the brownie config and add a new entry for

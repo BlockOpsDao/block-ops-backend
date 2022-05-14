@@ -21,7 +21,8 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
 
     // maps tokenId to amount of ETH stored in NFT
     mapping(uint256 => uint256) public amountOfEthInNFT;
-    mapping(uint256 => address) public tokenIdTotokenIdToNftCreators;
+    mapping(uint256 => address) public tokenIdToNftCreators;
+
 
     event NFTMinted(address _to, string _tokenMetadata, uint256 _escrowValue, uint256 _tokenId);
     event Redeemed(address _redeemer, uint256 _tokenId, uint256 _amount);

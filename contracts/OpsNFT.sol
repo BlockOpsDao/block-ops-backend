@@ -40,7 +40,7 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
         _;
     }
 
-    function safeMint(string memory tokenMetadataURI) public onlyOwner payable {
+    function safeMint(string memory tokenMetadataURI) public payable {
         // TODO: Implement way for owner to set a custom royalty value
         //       to satisfy the future use case of providing 
         //       consulting services in exchange for a higher % of the 
@@ -104,7 +104,7 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
         totalEthPaidOut += amountToPayOut;
         totalBountyAmount -= amountToPayOut;
 
-        emit Redeemed(msg.sender, _tokenId, amount);
+        emit Redeemed(msg.sender, _tokenId, amountToPayOut);
     } 
 
     function getAmountStoredInNFT(uint256 _tokenId) public view returns (uint256) {
@@ -126,6 +126,14 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
     function getArrayOfNFTsFromCreator(address _nftCreator) public view returns (uint256[] memory) {
         uint256[] memory arrayOfNfts = openNftsFromCreators[_nftCreator];
         return arrayOfNfts;
+    }
+
+    function getTotalEthPaidOut() public view returns (uint256) {
+        return totalEthPaidOut;
+    }
+
+    function getTotalBountyAmount() public view returns (uint256) {
+        return totalBountyAmount;
     }
 
 

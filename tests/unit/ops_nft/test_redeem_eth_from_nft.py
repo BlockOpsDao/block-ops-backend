@@ -157,3 +157,8 @@ def test_account_balances_are_correct(
     # assert that there are no remaining funds left in the NFT.
     assert nft.balance() == 0
 
+
+def test_get_royalty_num_and_denom(nft):
+    numerator, denominator = nft.getRoyaltyNumeratorAndDenominator()
+    assert numerator == 100
+    assert numerator / denominator == 0.01

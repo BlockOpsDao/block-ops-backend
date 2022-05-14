@@ -21,7 +21,7 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
 
     // maps tokenId to amount of ETH stored in NFT
     mapping(uint256 => uint256) public amountOfEthInNFT;
-    mapping(uint256 => address) public nftCreators;
+    mapping(uint256 => address) public tokenIdTotokenIdToNftCreators;
 
     event NFTMinted(address _to, string _tokenMetadata, uint256 _escrowValue, uint256 _tokenId);
     event Redeemed(address _redeemer, uint256 _tokenId, uint256 _amount);
@@ -53,7 +53,7 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
         uint256 royaltyAmount = _payOutRoyalty(tokenId, msg.value);
         uint256 amountToEscrow = msg.value - royaltyAmount;
         amountOfEthInNFT[tokenId] = amountToEscrow;
-        nftCreators[tokenId] = msg.sender;
+        tokenIdToNftCreators[tokenId] = msg.sender;
         initialized = true;
         emit NFTMinted(msg.sender, tokenMetadataURI, amountToEscrow, tokenId);
 
@@ -72,7 +72,7 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
         string memory tokenMetadata = tokenURI(_tokenId);
         uint256 amount = amountOfEthInNFT[_tokenId];
         address nftOwner = ownerOf(_tokenId);
-        address nftCreator = nftCreators[_tokenId];
+        address nftCreator = tokenIdToNftCreators[_tokenId];
         return (nftOwner, tokenMetadata, amount, nftCreator);
     }
 
@@ -97,7 +97,7 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
     }
 
     function getNFTCreator(uint256 _tokenId) public view returns (address) {
-        return nftCreators[_tokenId];
+        return tokenIdToNftCreators[_tokenId];
     }
 
     // The following functions are overrides required by Solidity.

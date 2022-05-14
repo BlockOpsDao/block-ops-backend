@@ -14,14 +14,17 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
 
     Counters.Counter private _tokenIdCounter;
     bool public initialized = false;
-    address public royaltyAddress = 0x2615e4520418848893f9F0d69Ecc84084119D0E5;
+    address public _royaltyAddress = 0x2615e4520418848893f9F0d69Ecc84084119D0E5;
     uint8 public royaltyNumerator = 100;
+    uint16 public royaltyDenominator = 10000;
+    uint256 public totalEthPaidOut = 0;
+    uint256 public totalBountyAmount = 0;
     
-    // NFT data
-
-    // maps tokenId to amount of ETH stored in NFT
     mapping(uint256 => uint256) public amountOfEthInNFT;
     mapping(uint256 => address) public tokenIdToNftCreators;
+    mapping(address => uint256) public numberOfOpenNftsFromCreators;
+    mapping(address => uint256) public numberOfClosedNftsFromCreators;
+    mapping(address => uint256[]) public openNftsFromCreators;
 
 
     event NFTMinted(address _to, string _tokenMetadata, uint256 _escrowValue, uint256 _tokenId);
@@ -29,7 +32,7 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
     event RoyaltyPaid(address _to, uint256 _amount);
     
     constructor() ERC721("OpsNFT", "OPS") {
-        _setDefaultRoyalty(royaltyAddress, royaltyNumerator);
+        _setDefaultRoyalty(_royaltyAddress, royaltyNumerator);
     }
 
     modifier isInitialized() {
@@ -55,6 +58,10 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
         uint256 amountToEscrow = msg.value - royaltyAmount;
         amountOfEthInNFT[tokenId] = amountToEscrow;
         tokenIdToNftCreators[tokenId] = msg.sender;
+        openNftsFromCreators[msg.sender].push(tokenId);
+
+        numberOfOpenNftsFromCreators[msg.sender] += 1;
+        totalBountyAmount += amountToEscrow;
         initialized = true;
         emit NFTMinted(msg.sender, tokenMetadataURI, amountToEscrow, tokenId);
 
@@ -90,6 +97,13 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
 
         (bool success, ) = msg.sender.call{value: amountToPayOut}("");
         require(success, "Transfer Failed.");
+
+        address tokenCreator = tokenIdToNftCreators[_tokenId];
+        numberOfOpenNftsFromCreators[tokenCreator] -= 1;
+        numberOfClosedNftsFromCreators[tokenCreator] += 1;
+        totalEthPaidOut += amountToPayOut;
+        totalBountyAmount -= amountToPayOut;
+
         emit Redeemed(msg.sender, _tokenId, amount);
     } 
 
@@ -100,6 +114,20 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
     function getNFTCreator(uint256 _tokenId) public view returns (address) {
         return tokenIdToNftCreators[_tokenId];
     }
+
+    function getNumberOfOpenNFTsFromCreator(address _nftCreator) public view returns (uint256) {
+        return numberOfOpenNftsFromCreators[_nftCreator];
+    }
+
+    function getRoyaltyNumeratorAndDenominator() public view returns (uint8, uint16) {
+        return (royaltyNumerator, royaltyDenominator);
+    }
+
+    function getArrayOfNFTsFromCreator(address _nftCreator) public view returns (uint256[] memory) {
+        uint256[] memory arrayOfNfts = openNftsFromCreators[_nftCreator];
+        return arrayOfNfts;
+    }
+
 
     // The following functions are overrides required by Solidity.
 

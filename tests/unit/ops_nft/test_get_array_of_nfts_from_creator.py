@@ -42,9 +42,6 @@ def test_get_array_of_nfts_from__multiple_creators(
     assert list_of_nfts_created_by_valid_account == (0, 1, 2, 3)
     assert list_of_nfts_created_by_invalid_account == (4, 5, 6, 7)
 
-    transfer_tx = nft.safeTransferFrom(invalid_account, invalid_account, 0)
-    transfer_tx.wait(1)
-
 def test_get_number_of_open_nfts_from_creator(
     nft, token_metadata_uri, valid_account, amount_to_escrow_in_nft, invalid_account
 ):

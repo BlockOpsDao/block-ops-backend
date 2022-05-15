@@ -100,7 +100,7 @@ def main():
     account = utils.get_account()
     deployment_confirmation = input(f"Are you sure you want to deploy to {utils.active_network}? [Y/n]")
     if deployment_confirmation == "Y":
-        ops_token = OpsNFT.deploy({"from": account})
+        ops_token = OpsNFT.deploy({"from": account}, publish_source=True)
         print('Deployed!')
 
 if __name__ == "__main__":

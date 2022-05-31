@@ -19,19 +19,30 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
     uint16 public royaltyDenominator = 10000;
     uint256 public totalEthPaidOut = 0;
     uint256 public totalBountyAmount = 0;
+    enum PROJECT_STATE {
+        NEW,
+        ACTIVE,
+        CLOSED
+    }
+    struct Submission {
+        address submitter;
+        string metadataURI;
+    }
     
     mapping(uint256 => uint256) public amountOfEthInNFT;
     mapping(uint256 => address) public tokenIdToNftCreators;
     mapping(address => uint256) public numberOfOpenNftsFromCreators;
     mapping(address => uint256) public numberOfClosedNftsFromCreators;
     mapping(address => uint256[]) public openNftsFromCreators;
-
+    mapping(uint256 => PROJECT_STATE) public tokenIdToProjectState;
+    mapping(uint256 => Submission[]) public tokenIdToSubmissions;
 
     event NFTMinted(address _to, string _tokenMetadata, uint256 _escrowValue, uint256 _tokenId);
+    event SubmissionMade(address _submitter, uint256 _tokenId, string _submissionString, address _nftOwner);
     event Redeemed(address _redeemer, uint256 _tokenId, uint256 _amount);
     event RoyaltyPaid(address _to, uint256 _amount);
     
-    constructor() ERC721("OpsNFT", "OPS") {
+    constructor() ERC721("BLOCK", "OPS") {
         _setDefaultRoyalty(_royaltyAddress, royaltyNumerator);
     }
 
@@ -53,6 +64,7 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
         _tokenIdCounter.increment();
         _safeMint(msg.sender, tokenId);
         _setTokenURI(tokenId, tokenMetadataURI);
+        tokenIdToProjectState[tokenId] = PROJECT_STATE.NEW;
 
         uint256 royaltyAmount = _payOutRoyalty(tokenId, msg.value);
         uint256 amountToEscrow = msg.value - royaltyAmount;
@@ -75,13 +87,17 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
         return royaltyAmount;
     }
 
-    function tokenDetails(uint256 _tokenId) public view returns (address, string memory, uint256, address) {
+    function tokenDetails(uint256 _tokenId) public view returns (address, string memory, uint256, address, uint256, PROJECT_STATE, Submission[] memory) {
         require(_exists(_tokenId), "NFT tokenId does not exist.");
-        string memory tokenMetadata = tokenURI(_tokenId);
-        uint256 amount = amountOfEthInNFT[_tokenId];
-        address nftOwner = ownerOf(_tokenId);
-        address nftCreator = tokenIdToNftCreators[_tokenId];
-        return (nftOwner, tokenMetadata, amount, nftCreator);
+        return (
+            ownerOf(_tokenId), 
+            tokenURI(_tokenId), 
+            amountOfEthInNFT[_tokenId], 
+            tokenIdToNftCreators[_tokenId], 
+            _tokenId, 
+            tokenIdToProjectState[_tokenId], 
+            tokenIdToSubmissions[_tokenId]
+        );
     }
 
     function contractAddress() public view returns (address) {
@@ -89,8 +105,9 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
     }
 
     function redeemEthFromNFT(uint256 _tokenId) external isInitialized {
-        (address nftOwner, string memory tokenMetadata, uint256 amount, address nftCreator) = tokenDetails(_tokenId);
+        (address nftOwner, string memory tokenMetadata, uint256 amount, address nftCreator, uint256 tokenId, PROJECT_STATE projectState, Submission[] memory submissionsMade) = tokenDetails(_tokenId);
         require(nftOwner == msg.sender, "Only the owner of the NFT can redeem the rewards.");
+        require(projectState != PROJECT_STATE.CLOSED, "Cannot redeem a project has already been closed.");
 
         uint256 royaltyAmount = _payOutRoyalty(_tokenId, amount);
         uint256 amountToPayOut = amount - royaltyAmount;
@@ -103,9 +120,22 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
         numberOfClosedNftsFromCreators[tokenCreator] += 1;
         totalEthPaidOut += amountToPayOut;
         totalBountyAmount -= amountToPayOut;
-
+        tokenIdToProjectState[_tokenId] = PROJECT_STATE.CLOSED;
         emit Redeemed(msg.sender, _tokenId, amountToPayOut);
     } 
+
+    function makeSubmission(uint256 _tokenId, string memory submissionMetadataURI) external isInitialized {
+        (address nftOwner, string memory tokenMetadata, uint256 amount, address nftCreator, uint256 tokenId, PROJECT_STATE projectState, Submission[] memory submissionsMade) = tokenDetails(_tokenId);
+        require(projectState != PROJECT_STATE.CLOSED, "Project is already closed");
+        tokenIdToProjectState[_tokenId] = PROJECT_STATE.ACTIVE;
+        
+        Submission memory _submission;
+        _submission.submitter = msg.sender;
+        _submission.metadataURI = submissionMetadataURI; 
+
+        tokenIdToSubmissions[_tokenId].push(_submission);
+        emit SubmissionMade(msg.sender, _tokenId, submissionMetadataURI, nftOwner);
+    }
 
     function getAmountStoredInNFT(uint256 _tokenId) public view returns (uint256) {
         return amountOfEthInNFT[_tokenId];
@@ -134,6 +164,10 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
 
     function getTotalBountyAmount() public view returns (uint256) {
         return totalBountyAmount;
+    }
+
+    function getSubmissionsForTokenId(uint256 _tokenId) public view returns (Submission[] memory) {
+        return tokenIdToSubmissions[_tokenId];
     }
 
 

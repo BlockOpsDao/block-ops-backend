@@ -18,6 +18,7 @@ def test_get_array_of_nfts_from_creator(
     assert list_of_nfts_created == tuple(range(number_of_nfts_to_mint))
     assert len(list_of_nfts_created) == number_of_nfts_to_mint
 
+
 def test_get_array_of_nfts_from__multiple_creators(
     nft, token_metadata_uri, valid_account, invalid_account, amount_to_escrow_in_nft
 ):
@@ -36,11 +37,16 @@ def test_get_array_of_nfts_from__multiple_creators(
         )
         safe_mint_tx.wait(1)
 
-    list_of_nfts_created_by_valid_account = nft.getArrayOfNFTsFromCreator(valid_account.address)
-    list_of_nfts_created_by_invalid_account = nft.getArrayOfNFTsFromCreator(invalid_account.address)
+    list_of_nfts_created_by_valid_account = nft.getArrayOfNFTsFromCreator(
+        valid_account.address
+    )
+    list_of_nfts_created_by_invalid_account = nft.getArrayOfNFTsFromCreator(
+        invalid_account.address
+    )
 
     assert list_of_nfts_created_by_valid_account == (0, 1, 2, 3)
     assert list_of_nfts_created_by_invalid_account == (4, 5, 6, 7)
+
 
 def test_get_number_of_open_nfts_from_creator(
     nft, token_metadata_uri, valid_account, amount_to_escrow_in_nft, invalid_account
@@ -72,6 +78,7 @@ def test_get_number_of_open_nfts_from_creator(
         valid_account.address
     )
     assert number_of_open_nfts_created_by_valid_account == unredeemed_nfts
+
 
 def test_get_nft_creator(
     nft, token_metadata_uri, valid_account, amount_to_escrow_in_nft, invalid_account

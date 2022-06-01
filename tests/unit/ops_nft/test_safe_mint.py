@@ -36,17 +36,6 @@ def test_can_call_safe_mint_with_valid_account(
     assert isinstance(safe_mint_tx, brownie.network.transaction.TransactionReceipt)
 
 
-def test_can_not_call_safe_mint_with_invalid_account(
-    nft, invalid_account, token_metadata_uri, amount_to_escrow_in_nft
-):
-    with pytest.raises(exceptions.VirtualMachineError):
-        safe_mint_tx = nft.safeMint(
-            token_metadata_uri,
-            {"from": invalid_account, "value": amount_to_escrow_in_nft},
-        )
-        safe_mint_tx.wait(1)
-
-
 def test_nft_is_minted_to_proper_user(
     nft, token_metadata_uri, amount_to_escrow_in_nft, valid_account, invalid_account
 ):

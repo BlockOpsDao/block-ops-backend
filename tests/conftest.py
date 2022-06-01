@@ -22,6 +22,11 @@ def token_metadata_uri():
     return "https://my-nft.metadata/here-is-some-cool-metadata.json"
 
 
+@pytest.fixture
+def submission_metadata_uri():
+    return "https://my-submission.metadata/here-is-a-submission.json"
+
+
 @pytest.fixture(scope="module")
 def zero_address():
     return "0x0000000000000000000000000000000000000000"

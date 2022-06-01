@@ -34,6 +34,7 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
     mapping(address => uint256[]) public openNftsFromCreators;
     mapping(uint256 => PROJECT_STATE) public tokenIdToProjectState;
     mapping(uint256 => Submission[]) public tokenIdToSubmissions;
+    mapping(uint256 => Submission) public tokenIdToWinningSubmission;
 
     event NFTMinted(address _to, string _tokenMetadata, uint256 _escrowValue, uint256 _tokenId);
     event SubmissionMade(address _submitter, uint256 _tokenId, string _submissionString, address _nftOwner);
@@ -146,6 +147,23 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
         emit SubmissionMade(msg.sender, _tokenId, submissionMetadataURI, nftOwner);
     }
 
+    function declareWinningSubmission(uint256 _tokenId, uint256 _submissionId) external isInitialized {
+        (
+            address nftOwner, 
+            , 
+            , 
+            , 
+            , 
+            PROJECT_STATE projectState, 
+            Submission[] memory submissionsMade
+        ) = tokenDetails(_tokenId);
+        require(nftOwner == msg.sender, "Only the owner of the NFT can declare a winner.");
+        require(projectState != PROJECT_STATE.CLOSED, "Project is already closed.");
+
+        tokenIdToWinningSubmission[_tokenId] = submissionsMade[_submissionId];
+        safeTransferFrom(nftOwner, submissionsMade[_submissionId].submitter, _tokenId);
+    }
+
     function getAmountStoredInNFT(uint256 _tokenId) public view returns (uint256) {
         return amountOfEthInNFT[_tokenId];
     }
@@ -175,6 +193,9 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
         return tokenIdToSubmissions[_tokenId];
     }
 
+    function getWinningSubmissionForTokenId(uint256 _tokenId) public view returns (Submission memory) {
+        return tokenIdToWinningSubmission[_tokenId];
+    }
 
     // The following functions are overrides required by Solidity.
 

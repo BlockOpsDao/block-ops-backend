@@ -27,7 +27,6 @@ def test_can_make_a_submission(
     assert "SubmissionMade" in submission_tx.events.keys()
 
 
-
 def test_submission_event_emits(
     nft,
     valid_account,

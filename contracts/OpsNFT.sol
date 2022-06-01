@@ -31,8 +31,6 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
     
     mapping(uint256 => uint256) public amountOfEthInNFT;
     mapping(uint256 => address) public tokenIdToNftCreators;
-    mapping(address => uint256) public numberOfOpenNftsFromCreators;
-    mapping(address => uint256) public numberOfClosedNftsFromCreators;
     mapping(address => uint256[]) public openNftsFromCreators;
     mapping(uint256 => PROJECT_STATE) public tokenIdToProjectState;
     mapping(uint256 => Submission[]) public tokenIdToSubmissions;
@@ -66,13 +64,11 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
         _setTokenURI(tokenId, tokenMetadataURI);
         tokenIdToProjectState[tokenId] = PROJECT_STATE.NEW;
 
-        uint256 royaltyAmount = _payOutRoyalty(tokenId, msg.value);
-        uint256 amountToEscrow = msg.value - royaltyAmount;
+        uint256 amountToEscrow = msg.value - _payOutRoyalty(tokenId, msg.value);
         amountOfEthInNFT[tokenId] = amountToEscrow;
         tokenIdToNftCreators[tokenId] = msg.sender;
         openNftsFromCreators[msg.sender].push(tokenId);
 
-        numberOfOpenNftsFromCreators[msg.sender] += 1;
         totalBountyAmount += amountToEscrow;
         initialized = true;
         emit NFTMinted(msg.sender, tokenMetadataURI, amountToEscrow, tokenId);
@@ -105,7 +101,15 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
     }
 
     function redeemEthFromNFT(uint256 _tokenId) external isInitialized {
-        (address nftOwner, string memory tokenMetadata, uint256 amount, address nftCreator, uint256 tokenId, PROJECT_STATE projectState, Submission[] memory submissionsMade) = tokenDetails(_tokenId);
+        (
+            address nftOwner, 
+            string memory tokenMetadata, 
+            uint256 amount, 
+            address nftCreator, 
+            uint256 tokenId, 
+            PROJECT_STATE projectState, 
+            Submission[] memory submissionsMade
+        ) = tokenDetails(_tokenId);
         require(nftOwner == msg.sender, "Only the owner of the NFT can redeem the rewards.");
         require(projectState != PROJECT_STATE.CLOSED, "Cannot redeem a project has already been closed.");
 
@@ -115,9 +119,6 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
         (bool success, ) = msg.sender.call{value: amountToPayOut}("");
         require(success, "Transfer Failed.");
 
-        address tokenCreator = tokenIdToNftCreators[_tokenId];
-        numberOfOpenNftsFromCreators[tokenCreator] -= 1;
-        numberOfClosedNftsFromCreators[tokenCreator] += 1;
         totalEthPaidOut += amountToPayOut;
         totalBountyAmount -= amountToPayOut;
         tokenIdToProjectState[_tokenId] = PROJECT_STATE.CLOSED;
@@ -125,7 +126,15 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
     } 
 
     function makeSubmission(uint256 _tokenId, string memory submissionMetadataURI) external isInitialized {
-        (address nftOwner, string memory tokenMetadata, uint256 amount, address nftCreator, uint256 tokenId, PROJECT_STATE projectState, Submission[] memory submissionsMade) = tokenDetails(_tokenId);
+        (
+            address nftOwner, 
+            string memory tokenMetadata, 
+            uint256 amount, 
+            address nftCreator, 
+            uint256 tokenId, 
+            PROJECT_STATE projectState, 
+            Submission[] memory submissionsMade
+        ) = tokenDetails(_tokenId);
         require(projectState != PROJECT_STATE.CLOSED, "Project is already closed");
         tokenIdToProjectState[_tokenId] = PROJECT_STATE.ACTIVE;
         
@@ -143,10 +152,6 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
 
     function getNFTCreator(uint256 _tokenId) public view returns (address) {
         return tokenIdToNftCreators[_tokenId];
-    }
-
-    function getNumberOfOpenNFTsFromCreator(address _nftCreator) public view returns (uint256) {
-        return numberOfOpenNftsFromCreators[_nftCreator];
     }
 
     function getRoyaltyNumeratorAndDenominator() public view returns (uint8, uint16) {

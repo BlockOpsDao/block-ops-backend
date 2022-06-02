@@ -35,6 +35,8 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
     mapping(uint256 => PROJECT_STATE) public tokenIdToProjectState;
     mapping(uint256 => Submission[]) public tokenIdToSubmissions;
     mapping(uint256 => Submission) public tokenIdToWinningSubmission;
+    mapping(address => uint256[]) public addressToTokenIdsWithSubmissions;
+    mapping(address => mapping(uint256 => Submission[])) public addressToTokenIdSubmissions;
 
     event NFTMinted(address _to, string _tokenMetadata, uint256 _escrowValue, uint256 _tokenId);
     event SubmissionMade(address _submitter, uint256 _tokenId, string _submissionString, address _nftOwner);
@@ -74,7 +76,6 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
         totalBountyAmount += amountToEscrow;
         initialized = true;
         emit NFTMinted(msg.sender, tokenMetadataURI, amountToEscrow, tokenId);
-
     }
     
     function _payOutRoyalty(uint256 _tokenId, uint256 _nftSaleAmount) internal returns (uint256) {
@@ -144,6 +145,9 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
         _submission.metadataURI = submissionMetadataURI; 
 
         tokenIdToSubmissions[_tokenId].push(_submission);
+        addressToTokenIdsWithSubmissions[msg.sender].push(_tokenId);
+        addressToTokenIdSubmissions[msg.sender][_tokenId].push(_submission);
+
         emit SubmissionMade(msg.sender, _tokenId, submissionMetadataURI, nftOwner);
     }
 
@@ -200,6 +204,14 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
 
     function getWinningSubmissionForTokenId(uint256 _tokenId) public view returns (Submission memory) {
         return tokenIdToWinningSubmission[_tokenId];
+    }
+
+    function getTokenIdsWithSubmissionsFromAddress(address _submitter) public view returns (uint256[] memory) {
+        return addressToTokenIdsWithSubmissions[_submitter];
+    }
+
+    function getSubmissionsFromAddressForTokenId(address _submitter, uint256 _tokenId) public view returns (Submission[] memory) {
+        return addressToTokenIdSubmissions[_submitter][_tokenId];
     }
 
     // The following functions are overrides required by Solidity.

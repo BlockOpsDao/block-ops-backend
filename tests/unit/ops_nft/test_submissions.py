@@ -382,3 +382,61 @@ def test_ownership_transferred_after_submission(
     ) = nft.tokenDetails(token_id)
     assert token_id == tokenId, "Failed to grab the correct tokenId."
     assert project_state == 2, "Project failed to enter project state Closed. "
+
+def test_address_mappings_are_updated(
+    nft,
+    valid_account,
+    invalid_account,
+    token_metadata_uri,
+    submission_metadata_uri,
+    amount_to_escrow_in_nft,
+):
+
+    project_creator = valid_account
+    developer_submitter = invalid_account
+    token_id = 0
+    submissions_for_token_id_zero = []
+
+    safe_mint_tx = nft.safeMint(
+        token_metadata_uri,
+        {"from": project_creator, "value": amount_to_escrow_in_nft},
+    )
+    safe_mint_tx.wait(1)
+
+    submission_tx = nft.makeSubmission(
+        token_id, submission_metadata_uri, {"from": developer_submitter}
+    )
+    submission_tx.wait(1)
+    submissions_for_token_id_zero.append(
+        (developer_submitter, submission_metadata_uri)
+    )
+
+    new_metadata_uri = "https://block-ops.io/ipfs/hereissomecool.stuff"
+    submission_tx = nft.makeSubmission(
+        token_id, new_metadata_uri, {"from": developer_submitter}
+    )
+    submission_tx.wait(1)
+    submissions_for_token_id_zero.append(
+        (developer_submitter, new_metadata_uri)
+    )
+
+    token_ids_worked_on = nft.getTokenIdsWithSubmissionsFromAddress(
+        developer_submitter,
+        {"from": developer_submitter}
+    )
+    assert token_ids_worked_on == (0,0), f'getTokenIdsWithSubmissionsFromAddress not updating correctly: {token_ids_worked_on}'
+
+    developer_submissions = nft.getSubmissionsFromAddressForTokenId(
+        developer_submitter,
+        token_id,
+        {"from": developer_submitter}
+    )
+
+    assert developer_submissions == submissions_for_token_id_zero, f'getSubmissionsFromAddressForTokenId is not properly returning submissions: {developer_submissions} |  {submissions_for_token_id_zero}'
+
+    developer_submissions = nft.getSubmissionsFromAddressForTokenId(
+        developer_submitter,
+        1,
+        {"from": developer_submitter}
+    )
+    assert developer_submissions == ()

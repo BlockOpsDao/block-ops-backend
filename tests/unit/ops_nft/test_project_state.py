@@ -25,7 +25,7 @@ def test_project_state_opens_on_safe_mint(
     assert project_state == 0, "Project failed to enter project state New."
 
 
-def test_project_state_closes_on_redemption(
+def test_project_state_does_not_close_on_redemption(
     nft, valid_account, token_metadata_uri, amount_to_escrow_in_nft
 ):
     safe_mint_tx = nft.safeMint(
@@ -59,7 +59,7 @@ def test_project_state_closes_on_redemption(
         submissions
     ) = nft.tokenDetails(0)
     assert token_id == 0, "Failed to grab the correct tokenId."
-    assert project_state == 2, "Project failed to enter project state Closed."
+    assert project_state != 2, "Project entered project state Closed."
 
 def test_submission_makes_project_active(
     nft,

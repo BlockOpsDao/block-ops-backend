@@ -370,3 +370,15 @@ def test_ownership_transferred_after_submission(
     (numerator, denominator) = nft.getRoyaltyNumeratorAndDenominator()
     expected_amount_after_royalty = amount * (1 - (numerator / denominator))
     assert new_developer_balance == initial_developer_balance + expected_amount_after_royalty, f'balance not properly transferred'
+
+    (   
+        nft_owner,
+        token_metadata,
+        amount,
+        nft_creator,
+        tokenId,
+        project_state,
+        submissions
+    ) = nft.tokenDetails(token_id)
+    assert token_id == tokenId, "Failed to grab the correct tokenId."
+    assert project_state == 2, "Project failed to enter project state Closed. "

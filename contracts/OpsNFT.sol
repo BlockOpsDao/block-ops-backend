@@ -119,10 +119,11 @@ contract OpsNFT is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Royalty, Ow
         uint256 amountToPayOut = amount - royaltyAmount;
 
         (bool success, ) = msg.sender.call{value: amountToPayOut}("");
-        require(success, "Transfer Failed.");
+        require(success, "Transfer Failed: redeemEthFromNFT.");
 
         totalEthPaidOut += amountToPayOut;
         totalBountyAmount -= amountToPayOut;
+        amountOfEthInNFT[_tokenId] = 0;
 
         emit Redeemed(msg.sender, _tokenId, amountToPayOut);
     } 
